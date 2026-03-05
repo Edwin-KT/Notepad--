@@ -20,12 +20,16 @@ namespace Notepad__.ViewModels
         }
 
         public ICommand NewFileCommand { get; }
+        public ICommand OpenFileCommand { get; }
         public ICommand SaveFileCommand { get; }
         public ICommand SaveFileAsCommand { get; }
+
 
         public MainViewModel()
         {
             NewFileCommand = new RelayCommand(_ => NewFile());
+
+            OpenFileCommand = new RelayCommand(_ => OpenFile());
 
             // Save e activ doar daca exista un tab selectat
             SaveFileCommand = new RelayCommand(
@@ -44,6 +48,44 @@ namespace Notepad__.ViewModels
             var tab = new TabFile();
             Tabs.Add(tab);
             SelectedTab = tab;
+        }
+
+        public void OpenFile()
+        {
+            var dlg = new OpenFileDialog
+            {
+                Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
+                DefaultExt = ".txt"
+            };
+
+            if (dlg.ShowDialog() == true)
+                OpenFileFromPath(dlg.FileName);
+        }
+
+        public void OpenFileFromPath(string path)
+        {
+            // Daca fisierul e deja deschis, doar il selectam
+            foreach (var t in Tabs)
+            {
+                if (t.FilePath == path)
+                {
+                    SelectedTab = t;
+                    return;
+                }
+            }
+
+            // Altfel il deschidem intr-un tab nou
+            try
+            {
+                string content = File.ReadAllText(path);
+                var tab = new TabFile(path, content);
+                Tabs.Add(tab);
+                SelectedTab = tab;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Cannot open file: {ex.Message}", "Error");
+            }
         }
 
         // Returneaza true/false ca sa stim daca salvarea a reusit

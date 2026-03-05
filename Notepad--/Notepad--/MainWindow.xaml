@@ -15,6 +15,7 @@
 			<MenuItem Header="File">
 				<MenuItem Header="New File"      Command="{Binding NewFileCommand}"/>
 				<Separator/>
+				<MenuItem Header="Open File" Command="{Binding OpenFileCommand}"/>
 				<MenuItem Header="Save File"     Command="{Binding SaveFileCommand}"/>
 				<MenuItem Header="Save File As..." Command="{Binding SaveFileAsCommand}"/>
 			</MenuItem>
