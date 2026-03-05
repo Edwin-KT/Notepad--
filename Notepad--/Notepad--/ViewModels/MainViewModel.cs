@@ -1,13 +1,15 @@
 ﻿using Notepad__.Helpers;
 using Notepad__.Models;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Notepad__.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        // Lista de taburi vizibila in UI
         public ObservableCollection<TabFile> Tabs { get; } = new();
 
         private TabFile _selectedTab;
@@ -17,14 +19,23 @@ namespace Notepad__.ViewModels
             set { _selectedTab = value; OnPropertyChanged(); }
         }
 
-        // Comenzi
         public ICommand NewFileCommand { get; }
+        public ICommand SaveFileCommand { get; }
+        public ICommand SaveFileAsCommand { get; }
 
         public MainViewModel()
         {
             NewFileCommand = new RelayCommand(_ => NewFile());
 
-            // Subpunctul 1: la pornire se deschide un tab gol
+            // Save e activ doar daca exista un tab selectat
+            SaveFileCommand = new RelayCommand(
+                _ => SaveFile(),
+                _ => SelectedTab != null);
+
+            SaveFileAsCommand = new RelayCommand(
+                _ => SaveFileAs(),
+                _ => SelectedTab != null);
+
             NewFile();
         }
 
@@ -33,6 +44,53 @@ namespace Notepad__.ViewModels
             var tab = new TabFile();
             Tabs.Add(tab);
             SelectedTab = tab;
+        }
+
+        // Returneaza true/false ca sa stim daca salvarea a reusit
+        // (util mai tarziu la Close)
+        public bool SaveFile(TabFile tab = null)
+        {
+            tab ??= SelectedTab;
+            if (tab == null) return false;
+
+            // Daca e fisier nou, trebuie sa alegem calea
+            if (tab.IsNew) return SaveFileAs(tab);
+
+            try
+            {
+                File.WriteAllText(tab.FilePath, tab.Content);
+                tab.IsModified = false; // dispare ●
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Cannot save: {ex.Message}", "Error");
+                return false;
+            }
+        }
+
+        public bool SaveFileAs(TabFile tab = null)
+        {
+            tab ??= SelectedTab;
+            if (tab == null) return false;
+
+            var dlg = new SaveFileDialog
+            {
+                Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
+                DefaultExt = ".txt",
+                // Propune numele tabului ca nume de fisier
+                FileName = tab.IsNew
+                    ? $"File {tab.NewFileIndex}"
+                    : Path.GetFileName(tab.FilePath)
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                tab.FilePath = dlg.FileName; // seteaza calea
+                return SaveFile(tab);
+            }
+
+            return false; // utilizatorul a apasat Cancel
         }
     }
 }
