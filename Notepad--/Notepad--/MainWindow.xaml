@@ -2,47 +2,86 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:Notepad__.ViewModels"
+		xmlns:helpers="clr-namespace:Notepad__.Helpers"
         Title="Notepad--" Height="600" Width="900">
 
 	<Window.DataContext>
 		<vm:MainViewModel/>
 	</Window.DataContext>
 
+	<Window.Resources>
+		<helpers:BoolToWidthConverter x:Key="BoolToWidthConverter"/>
+	</Window.Resources>
+
 	<DockPanel>
 
 		<!-- MENIU -->
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="File">
-				<MenuItem Header="New File"      Command="{Binding NewFileCommand}"/>
+				<MenuItem Header="New File"         Command="{Binding NewFileCommand}"/>
 				<Separator/>
-				<MenuItem Header="Open File" Command="{Binding OpenFileCommand}"/>
-				<MenuItem Header="Save File"     Command="{Binding SaveFileCommand}"/>
-				<MenuItem Header="Save File As..." Command="{Binding SaveFileAsCommand}"/>
+				<MenuItem Header="Open File..."     Command="{Binding OpenFileCommand}"/>
+				<Separator/>
+				<MenuItem Header="Save File"        Command="{Binding SaveFileCommand}"/>
+				<MenuItem Header="Save File As..."  Command="{Binding SaveFileAsCommand}"/>
+			</MenuItem>
+			<MenuItem Header="View">
+				<MenuItem Header="Standard"         Command="{Binding ShowStandardViewCommand}"/>
+				<MenuItem Header="Folder Explorer"  Command="{Binding ShowFolderExplorerCommand}"/>
 			</MenuItem>
 		</Menu>
 
-		<!-- TABURI -->
-		<TabControl ItemsSource="{Binding Tabs}"
-                    SelectedItem="{Binding SelectedTab}">
-			<TabControl.ItemTemplate>
-				<!-- Ce apare pe capul tabului -->
-				<DataTemplate>
-					<TextBlock Text="{Binding Header}"/>
-				</DataTemplate>
-			</TabControl.ItemTemplate>
-			<TabControl.ContentTemplate>
-				<!-- Continutul tabului: un TextBox simplu -->
-				<DataTemplate>
-					<TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                             AcceptsReturn="True"
-                             AcceptsTab="True"
-                             VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"
-                             FontFamily="Consolas"
-                             FontSize="13"/>
-				</DataTemplate>
-			</TabControl.ContentTemplate>
-		</TabControl>
+		<!-- ZONA PRINCIPALA: Explorer stanga + Taburi dreapta -->
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<!-- Coloana pentru explorer; se ascunde cand FolderExplorerVisible = false -->
+				<ColumnDefinition Width="{Binding FolderExplorerVisible, 
+                                  Converter={StaticResource BoolToWidthConverter}}"/>
+				<ColumnDefinition Width="5"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+
+			<!-- FOLDER EXPLORER -->
+			<TreeView Grid.Column="0"
+                      ItemsSource="{Binding FileSystemVM.Drives}">
+				<TreeView.ItemTemplate>
+					<HierarchicalDataTemplate ItemsSource="{Binding Children}">
+						<TextBlock Text="{Binding Name}"/>
+					</HierarchicalDataTemplate>
+				</TreeView.ItemTemplate>
+				<TreeView.ItemContainerStyle>
+					<Style TargetType="TreeViewItem">
+						<!-- Leaga IsExpanded din UI la proprietatea din model -->
+						<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+					</Style>
+				</TreeView.ItemContainerStyle>
+			</TreeView>
+
+			<!-- SEPARATOR VIZUAL -->
+			<GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
+
+			<!-- TABURI -->
+			<TabControl Grid.Column="2"
+                        ItemsSource="{Binding Tabs}"
+                        SelectedItem="{Binding SelectedTab}">
+				<TabControl.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Header}"/>
+					</DataTemplate>
+				</TabControl.ItemTemplate>
+				<TabControl.ContentTemplate>
+					<DataTemplate>
+						<TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 FontSize="13"/>
+					</DataTemplate>
+				</TabControl.ContentTemplate>
+			</TabControl>
+		</Grid>
 
 	</DockPanel>
 </Window>

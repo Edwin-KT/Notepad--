@@ -2,6 +2,7 @@
 using Notepad__.Models;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -19,10 +20,23 @@ namespace Notepad__.ViewModels
             set { _selectedTab = value; OnPropertyChanged(); }
         }
 
+
+        public FileSystemViewModel FileSystemVM { get; }
+
+        private bool _folderExplorerVisible = true;
+        public bool FolderExplorerVisible
+        {
+            get => _folderExplorerVisible;
+            set { _folderExplorerVisible = value; OnPropertyChanged(); }
+        }
+
         public ICommand NewFileCommand { get; }
         public ICommand OpenFileCommand { get; }
         public ICommand SaveFileCommand { get; }
         public ICommand SaveFileAsCommand { get; }
+        public ICommand ShowStandardViewCommand { get; }
+        public ICommand ShowFolderExplorerCommand { get; }
+
 
 
         public MainViewModel()
@@ -41,6 +55,11 @@ namespace Notepad__.ViewModels
                 _ => SelectedTab != null);
 
             NewFile();
+
+            FileSystemVM = new FileSystemViewModel();
+
+            ShowStandardViewCommand = new RelayCommand(_ => FolderExplorerVisible = false);
+            ShowFolderExplorerCommand = new RelayCommand(_ => FolderExplorerVisible = true);
         }
 
         public void NewFile()
