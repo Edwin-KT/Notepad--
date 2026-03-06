@@ -29,6 +29,16 @@ namespace Notepad__.ViewModels
                 Drives.Add(new FileSystemItem(drive.Name));
         }
 
+        public void OnItemDoubleClicked(FileSystemItem item)
+        {
+            // Ignoram dublu click pe directoare
+            if (item == null || item.IsDirectory) return;
+
+            // Verificam daca fisierul ar putea fi text
+            // (incercam sa il deschidem si prindem eroarea daca e binar)
+            OpenFileRequested?.Invoke(item.FullPath);
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

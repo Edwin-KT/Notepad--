@@ -43,7 +43,8 @@
 
 			<!-- FOLDER EXPLORER -->
 			<TreeView Grid.Column="0"
-                      ItemsSource="{Binding FileSystemVM.Drives}">
+					  ItemsSource="{Binding FileSystemVM.Drives}"
+					  MouseDoubleClick="TreeView_MouseDoubleClick">
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate ItemsSource="{Binding Children}">
 						<TextBlock Text="{Binding Name}"/>
@@ -51,7 +52,6 @@
 				</TreeView.ItemTemplate>
 				<TreeView.ItemContainerStyle>
 					<Style TargetType="TreeViewItem">
-						<!-- Leaga IsExpanded din UI la proprietatea din model -->
 						<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
 					</Style>
 				</TreeView.ItemContainerStyle>

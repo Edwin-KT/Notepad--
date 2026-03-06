@@ -57,6 +57,7 @@ namespace Notepad__.ViewModels
             NewFile();
 
             FileSystemVM = new FileSystemViewModel();
+            FileSystemVM.OpenFileRequested += OpenFileFromPath;
 
             ShowStandardViewCommand = new RelayCommand(_ => FolderExplorerVisible = false);
             ShowFolderExplorerCommand = new RelayCommand(_ => FolderExplorerVisible = true);
@@ -93,10 +94,24 @@ namespace Notepad__.ViewModels
                 }
             }
 
-            // Altfel il deschidem intr-un tab nou
             try
             {
-                string content = File.ReadAllText(path);
+                // Verificare simpla: citim primii 8000 bytes si cautam caractere nule
+                // Fisierele binare (imagini, exe etc.) contin de obicei caractere nule
+                // Fisierele text nu ar trebui sa contina
+                byte[] buffer = File.ReadAllBytes(path);
+                for (int i = 0; i < Math.Min(buffer.Length, 8000); i++)
+                {
+                    if (buffer[i] == 0)
+                    {
+                        MessageBox.Show(
+                            $"'{Path.GetFileName(path)}' appears to be a binary file and cannot be opened as text.",
+                            "Cannot open file");
+                        return;
+                    }
+                }
+
+                string content = System.Text.Encoding.UTF8.GetString(buffer);
                 var tab = new TabFile(path, content);
                 Tabs.Add(tab);
                 SelectedTab = tab;

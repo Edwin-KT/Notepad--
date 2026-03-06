@@ -1,24 +1,28 @@
-﻿using System.Text;
+﻿using Notepad__.Models;
+using Notepad__.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Notepad__
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void TreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Luam ViewModel-ul din DataContext
+            var vm = DataContext as MainViewModel;
+
+            // SelectedItem din TreeView este de tip FileSystemItem
+            var selectedItem = (sender as TreeView)?.SelectedItem as FileSystemItem;
+
+            // Trimitem la ViewModel — toata logica e acolo
+            vm?.FileSystemVM.OnItemDoubleClicked(selectedItem);
         }
     }
 }
