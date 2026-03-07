@@ -24,5 +24,12 @@ namespace Notepad__
             // Trimitem la ViewModel — toata logica e acolo
             vm?.FileSystemVM.OnItemDoubleClicked(selectedItem);
         }
+
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var vm = DataContext as MainViewModel;
+            if (vm != null)
+                vm.FileSystemVM.SelectedItem = e.NewValue as FileSystemItem;
+        }
     }
 }

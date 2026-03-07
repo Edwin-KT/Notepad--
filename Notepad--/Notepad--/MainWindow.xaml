@@ -43,16 +43,43 @@
 
 			<!-- FOLDER EXPLORER -->
 			<TreeView Grid.Column="0"
-					  ItemsSource="{Binding FileSystemVM.Drives}"
-					  MouseDoubleClick="TreeView_MouseDoubleClick">
+			ItemsSource="{Binding FileSystemVM.Drives}"
+			MouseDoubleClick="TreeView_MouseDoubleClick"
+			SelectedItemChanged="TreeView_SelectedItemChanged">
+
 				<TreeView.ItemTemplate>
 					<HierarchicalDataTemplate ItemsSource="{Binding Children}">
 						<TextBlock Text="{Binding Name}"/>
 					</HierarchicalDataTemplate>
 				</TreeView.ItemTemplate>
+
 				<TreeView.ItemContainerStyle>
 					<Style TargetType="TreeViewItem">
 						<Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+						<Setter Property="Tag" Value="{Binding DataContext.FileSystemVM, 
+                                  RelativeSource={RelativeSource AncestorType=TreeView}}"/>
+						<Setter Property="ContextMenu">
+							<Setter.Value>
+								<!-- Meniul apare doar pe directoare -->
+								<ContextMenu>
+									<!-- Trucul: legam DataContext-ul meniului la FileSystemViewModel
+                             prin PlacementTarget (elementul pe care s-a dat click dreapta),
+                             care are DataContext = MainViewModel, din care luam FileSystemVM -->
+									<ContextMenu.DataContext>
+										<Binding Path="PlacementTarget.Tag" RelativeSource="{RelativeSource Self}"/>
+									</ContextMenu.DataContext>
+
+									<MenuItem Header="New file"
+                                  Command="{Binding NewFileInFolderCommand}"/>
+									<MenuItem Header="Copy path"
+                                  Command="{Binding CopyPathCommand}"/>
+									<MenuItem Header="Copy folder"
+                                  Command="{Binding CopyFolderCommand}"/>
+									<MenuItem Header="Paste folder"
+                                  Command="{Binding PasteFolderCommand}"/>
+								</ContextMenu>
+							</Setter.Value>
+						</Setter>
 					</Style>
 				</TreeView.ItemContainerStyle>
 			</TreeView>
