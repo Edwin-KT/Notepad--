@@ -51,6 +51,12 @@
 				<MenuItem Header="{Binding SearchModeHeader}"
               Command="{Binding ToggleSearchModeCommand}"/>
 			</MenuItem>
+			<MenuItem Header="View">
+				<MenuItem Header="Standard"
+              Command="{Binding ShowStandardViewCommand}"/>
+				<MenuItem Header="Folder Explorer"
+              Command="{Binding ShowFolderExplorerCommand}"/>
+			</MenuItem>
 			<MenuItem Header="Help">
 				<MenuItem Header="About" Command="{Binding AboutCommand}"/>
 			</MenuItem>
