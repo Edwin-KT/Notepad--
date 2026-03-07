@@ -31,6 +31,20 @@ namespace Notepad__.ViewModels
             set { _folderExplorerVisible = value; OnPropertyChanged(); }
         }
 
+        private bool _searchAllTabs = false;
+        public bool SearchAllTabs
+        {
+            get => _searchAllTabs;
+            set
+            {
+                _searchAllTabs = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SearchModeHeader));
+            }
+        }
+
+        public string SearchModeHeader => SearchAllTabs ? "Mode: All Tabs" : "Mode: Selected Tab";
+
         public ICommand NewFileCommand { get; }
         public ICommand OpenFileCommand { get; }
         public ICommand SaveFileCommand { get; }
@@ -40,6 +54,10 @@ namespace Notepad__.ViewModels
         public ICommand ShowStandardViewCommand { get; }
         public ICommand ShowFolderExplorerCommand { get; }
         public ICommand ExitCommand { get; }
+        public ICommand FindCommand { get; }
+        public ICommand ReplaceCommand { get; }
+        public ICommand ReplaceAllCommand { get; }
+        public ICommand ToggleSearchModeCommand { get; }
 
 
 
@@ -67,6 +85,11 @@ namespace Notepad__.ViewModels
                 _ => Tabs.Count > 0);
 
             ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
+
+            FindCommand = new RelayCommand(_ => OpenFindReplace(false, false));
+            ReplaceCommand = new RelayCommand(_ => OpenFindReplace(true, false));
+            ReplaceAllCommand = new RelayCommand(_ => OpenFindReplace(true, true));
+            ToggleSearchModeCommand = new RelayCommand(_ => SearchAllTabs = !SearchAllTabs);
 
             NewFile();
 
@@ -239,6 +262,75 @@ namespace Notepad__.ViewModels
                 Tabs.Remove(tab);
             }
             NewFile();
+        }
+
+
+        private Views.FindReplaceWindow _findReplaceWindow;
+
+        private void OpenFindReplace(bool replaceMode, bool replaceAll)
+        {
+            // Daca fereastra e deja deschisa, o aducem in prim plan
+            if (_findReplaceWindow != null && _findReplaceWindow.IsVisible)
+            {
+                _findReplaceWindow.SetMode(replaceMode, replaceAll);
+                _findReplaceWindow.Focus();
+                return;
+            }
+            _findReplaceWindow = new Views.FindReplaceWindow(this, replaceMode, replaceAll);
+            _findReplaceWindow.Show();
+        }
+
+        // Returneaza indexul primei aparitii in tab-ul dat
+        // sau -1 daca nu gaseste
+        public int FindInTab(string searchText, TabFile tab)
+        {
+            if (string.IsNullOrEmpty(searchText) || tab == null) return -1;
+            return tab.Content?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) ?? -1;
+        }
+
+        // Inlocuieste prima aparitie in tab-ul dat
+        // Returneaza true daca a inlocuit ceva
+        public bool ReplaceInTab(string find, string replace, TabFile tab)
+        {
+            if (tab == null || string.IsNullOrEmpty(find)) return false;
+
+            int index = tab.Content?.IndexOf(find, StringComparison.OrdinalIgnoreCase) ?? -1;
+            if (index < 0) return false;
+
+            tab.Content = tab.Content.Remove(index, find.Length).Insert(index, replace);
+            return true;
+        }
+
+        // Inlocuieste toate aparitiile intr-un tab
+        // Returneaza numarul de inlocuiri
+        public int ReplaceAllInTab(string find, string replace, TabFile tab)
+        {
+            if (tab == null || string.IsNullOrEmpty(find)) return 0;
+
+            int count = 0;
+            string content = tab.Content ?? "";
+            string lower = content.ToLower();
+            string findLower = find.ToLower();
+            int index;
+
+            while ((index = lower.IndexOf(findLower)) >= 0)
+            {
+                content = content.Remove(index, find.Length).Insert(index, replace);
+                lower = content.ToLower();
+                count++;
+            }
+
+            if (count > 0) tab.Content = content;
+            return count;
+        }
+
+        // Inlocuieste toate aparitiile in toate taburile
+        public int ReplaceAllInAllTabs(string find, string replace)
+        {
+            int total = 0;
+            foreach (var tab in Tabs)
+                total += ReplaceAllInTab(find, replace, tab);
+            return total;
         }
     }
 }

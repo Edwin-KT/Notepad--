@@ -29,6 +29,18 @@
 				<Separator/>
 				<MenuItem Header="Exit"             Command="{Binding ExitCommand}"/>
 			</MenuItem>
+			<MenuItem Header="Search">
+				<MenuItem Header="Find..."
+              Command="{Binding FindCommand}"/>
+				<MenuItem Header="Replace..."
+              Command="{Binding ReplaceCommand}"/>
+				<MenuItem Header="Replace All..."
+              Command="{Binding ReplaceAllCommand}"/>
+				<Separator/>
+				<!-- Acest item arata modul curent si il schimba la click -->
+				<MenuItem Header="{Binding SearchModeHeader}"
+              Command="{Binding ToggleSearchModeCommand}"/>
+			</MenuItem>
 		</Menu>
 
 		<!-- ZONA PRINCIPALA: Explorer stanga + Taburi dreapta -->
