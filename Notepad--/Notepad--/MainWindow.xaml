@@ -9,6 +9,16 @@
 		<vm:MainViewModel/>
 	</Window.DataContext>
 
+	<Window.InputBindings>
+		<KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewFileCommand}"/>
+		<KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding OpenFileCommand}"/>
+		<KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveFileCommand}"/>
+		<KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveFileAsCommand}"/>
+		<KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FindCommand}"/>
+		<KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ReplaceCommand}"/>
+		<KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding CloseTabCommand}"/>
+	</Window.InputBindings>
+
 	<Window.Resources>
 		<helpers:BoolToWidthConverter x:Key="BoolToWidthConverter"/>
 	</Window.Resources>
@@ -41,7 +51,56 @@
 				<MenuItem Header="{Binding SearchModeHeader}"
               Command="{Binding ToggleSearchModeCommand}"/>
 			</MenuItem>
+			<MenuItem Header="Help">
+				<MenuItem Header="About" Command="{Binding AboutCommand}"/>
+			</MenuItem>
 		</Menu>
+
+		<ToolBar DockPanel.Dock="Top">
+
+			<!-- File operations -->
+			<Button Command="{Binding NewFileCommand}"
+            ToolTip="New File (Ctrl+N)">
+				<TextBlock Text="🗋" FontSize="14"/>
+			</Button>
+
+			<Button Command="{Binding OpenFileCommand}"
+            ToolTip="Open File (Ctrl+O)">
+				<TextBlock Text="📂" FontSize="14"/>
+			</Button>
+
+			<Button Command="{Binding SaveFileCommand}"
+            ToolTip="Save File (Ctrl+S)">
+				<TextBlock Text="💾" FontSize="14"/>
+			</Button>
+
+			<Separator/>
+
+			<!-- Search operations -->
+			<Button Command="{Binding FindCommand}"
+            ToolTip="Find (Ctrl+F)">
+				<TextBlock Text="🔍" FontSize="14"/>
+			</Button>
+
+			<Button Command="{Binding ReplaceCommand}"
+            ToolTip="Replace (Ctrl+H)">
+				<TextBlock Text="🔄" FontSize="14"/>
+			</Button>
+
+			<Separator/>
+
+			<!-- View operations -->
+			<Button Command="{Binding ShowFolderExplorerCommand}"
+            ToolTip="Show Folder Explorer">
+				<TextBlock Text="📁" FontSize="14"/>
+			</Button>
+
+			<Button Command="{Binding ShowStandardViewCommand}"
+            ToolTip="Standard View">
+				<TextBlock Text="📄" FontSize="14"/>
+			</Button>
+
+		</ToolBar>
 
 		<!-- ZONA PRINCIPALA: Explorer stanga + Taburi dreapta -->
 		<Grid>
@@ -107,22 +166,31 @@
 				<TabControl.ItemTemplate>
 					<DataTemplate>
 						<StackPanel Orientation="Horizontal">
-							<!-- Numele tabului -->
-							<TextBlock Text="{Binding Header}" 
-                           VerticalAlignment="Center"
-                           Margin="0,0,5,0"/>
-							<!-- Butonul X -->
+							<TextBlock VerticalAlignment="Center"
+                       Margin="0,0,5,0"
+                       Text="{Binding Header}">
+								<TextBlock.Style>
+									<Style TargetType="TextBlock">
+										<Style.Triggers>
+											<!-- Daca IsModified = true, textul devine rosu -->
+											<DataTrigger Binding="{Binding IsModified}" Value="True">
+												<Setter Property="Foreground" Value="Red"/>
+											</DataTrigger>
+										</Style.Triggers>
+									</Style>
+								</TextBlock.Style>
+							</TextBlock>
 							<Button Content="✕"
-                        Width="16" Height="16"
-                        FontSize="10"
-                        Padding="0"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        VerticalAlignment="Center"
-                        Command="{Binding DataContext.CloseTabCommand, 
-                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
-                        CommandParameter="{Binding}"/>
+                    Width="16" Height="16"
+                    FontSize="10"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    VerticalAlignment="Center"
+                    Command="{Binding DataContext.CloseTabCommand,
+                              RelativeSource={RelativeSource AncestorType=TabControl}}"
+                    CommandParameter="{Binding}"/>
 						</StackPanel>
 					</DataTemplate>
 				</TabControl.ItemTemplate>

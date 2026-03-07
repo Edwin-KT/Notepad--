@@ -59,6 +59,8 @@ namespace Notepad__.ViewModels
         public ICommand ReplaceAllCommand { get; }
         public ICommand ToggleSearchModeCommand { get; }
 
+        public ICommand AboutCommand { get; }
+
 
 
         public MainViewModel()
@@ -91,6 +93,8 @@ namespace Notepad__.ViewModels
             ReplaceAllCommand = new RelayCommand(_ => OpenFindReplace(true, true));
             ToggleSearchModeCommand = new RelayCommand(_ => SearchAllTabs = !SearchAllTabs);
 
+            AboutCommand = new RelayCommand(_ => new Views.AboutWindow().ShowDialog());
+
             NewFile();
 
             FileSystemVM = new FileSystemViewModel();
@@ -98,6 +102,7 @@ namespace Notepad__.ViewModels
 
             ShowStandardViewCommand = new RelayCommand(_ => FolderExplorerVisible = false);
             ShowFolderExplorerCommand = new RelayCommand(_ => FolderExplorerVisible = true);
+
         }
 
         public void NewFile()

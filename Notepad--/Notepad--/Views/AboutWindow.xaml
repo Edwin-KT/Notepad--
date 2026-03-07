@@ -1,0 +1,40 @@
+﻿<Window x:Class="Notepad__.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About" Height="220" Width="350"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+	<StackPanel Margin="25" VerticalAlignment="Center">
+
+		<TextBlock Text="Notepad--"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,15"/>
+
+		<TextBlock Text="Student: Edwin Kantor-Tomcek"
+                   FontSize="13"
+                   Margin="0,0,0,5"/>
+
+		<TextBlock Text="Grupa: 10LF242"
+                   FontSize="13"
+                   Margin="0,0,0,5"/>
+
+		<!-- Link catre email institutional -->
+		<StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+			<TextBlock Text="Email: " FontSize="13"/>
+			<TextBlock FontSize="13">
+                <Hyperlink NavigateUri="mailto:edwin.kantor@student.unitbv.ro"
+                           RequestNavigate="Hyperlink_RequestNavigate">
+                    edwin.kantor@student.unitbv.ro
+                </Hyperlink>
+			</TextBlock>
+		</StackPanel>
+
+		<Button Content="Close"
+                Width="80"
+                Margin="0,20,0,0"
+                HorizontalAlignment="Center"
+                Click="Close_Click"/>
+	</StackPanel>
+</Window>
