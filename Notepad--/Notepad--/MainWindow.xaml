@@ -24,10 +24,10 @@
 				<Separator/>
 				<MenuItem Header="Save File"        Command="{Binding SaveFileCommand}"/>
 				<MenuItem Header="Save File As..."  Command="{Binding SaveFileAsCommand}"/>
-			</MenuItem>
-			<MenuItem Header="View">
-				<MenuItem Header="Standard"         Command="{Binding ShowStandardViewCommand}"/>
-				<MenuItem Header="Folder Explorer"  Command="{Binding ShowFolderExplorerCommand}"/>
+				<Separator/>
+				<MenuItem Header="Close All Files"  Command="{Binding CloseAllTabsCommand}"/>
+				<Separator/>
+				<MenuItem Header="Exit"             Command="{Binding ExitCommand}"/>
 			</MenuItem>
 		</Menu>
 
@@ -89,24 +89,44 @@
 
 			<!-- TABURI -->
 			<TabControl Grid.Column="2"
-                        ItemsSource="{Binding Tabs}"
-                        SelectedItem="{Binding SelectedTab}">
+            ItemsSource="{Binding Tabs}"
+            SelectedItem="{Binding SelectedTab}">
+
 				<TabControl.ItemTemplate>
 					<DataTemplate>
-						<TextBlock Text="{Binding Header}"/>
+						<StackPanel Orientation="Horizontal">
+							<!-- Numele tabului -->
+							<TextBlock Text="{Binding Header}" 
+                           VerticalAlignment="Center"
+                           Margin="0,0,5,0"/>
+							<!-- Butonul X -->
+							<Button Content="✕"
+                        Width="16" Height="16"
+                        FontSize="10"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        VerticalAlignment="Center"
+                        Command="{Binding DataContext.CloseTabCommand, 
+                                  RelativeSource={RelativeSource AncestorType=TabControl}}"
+                        CommandParameter="{Binding}"/>
+						</StackPanel>
 					</DataTemplate>
 				</TabControl.ItemTemplate>
+
 				<TabControl.ContentTemplate>
 					<DataTemplate>
 						<TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 AcceptsTab="True"
-                                 VerticalScrollBarVisibility="Auto"
-                                 HorizontalScrollBarVisibility="Auto"
-                                 FontFamily="Consolas"
-                                 FontSize="13"/>
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Consolas"
+                     FontSize="13"/>
 					</DataTemplate>
 				</TabControl.ContentTemplate>
+
 			</TabControl>
 		</Grid>
 

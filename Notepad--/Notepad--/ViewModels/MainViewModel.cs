@@ -3,6 +3,7 @@ using Notepad__.Models;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System;
+using System.Linq;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -34,8 +35,11 @@ namespace Notepad__.ViewModels
         public ICommand OpenFileCommand { get; }
         public ICommand SaveFileCommand { get; }
         public ICommand SaveFileAsCommand { get; }
+        public ICommand CloseTabCommand { get; }      
+        public ICommand CloseAllTabsCommand { get; }  
         public ICommand ShowStandardViewCommand { get; }
         public ICommand ShowFolderExplorerCommand { get; }
+        public ICommand ExitCommand { get; }
 
 
 
@@ -53,6 +57,16 @@ namespace Notepad__.ViewModels
             SaveFileAsCommand = new RelayCommand(
                 _ => SaveFileAs(),
                 _ => SelectedTab != null);
+
+            CloseTabCommand = new RelayCommand(
+                tab => CloseTab(tab as TabFile),
+                _ => SelectedTab != null);
+
+            CloseAllTabsCommand = new RelayCommand(
+                _ => CloseAllTabs(),
+                _ => Tabs.Count > 0);
+
+            ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
 
             NewFile();
 
@@ -167,6 +181,64 @@ namespace Notepad__.ViewModels
             }
 
             return false; // utilizatorul a apasat Cancel
+        }
+
+        public void CloseTab(TabFile tab)
+        {
+            if (tab == null) return;
+
+            if (tab.IsModified)
+            {
+                var result = MessageBox.Show(
+                    $"'{tab.Header.Replace(" ●", "")}' has unsaved changes. Save?",
+                    "Unsaved changes",
+                    MessageBoxButton.YesNoCancel);
+
+                if (result == MessageBoxResult.Cancel) return;
+                if (result == MessageBoxResult.Yes)
+                {
+                    // Daca salvarea esueaza (ex: utilizatorul a apasat Cancel la SaveAs)
+                    // nu inchidem tabul
+                    bool saved = SaveFile(tab);
+                    if (!saved) return;
+                }
+            }
+
+            int index = Tabs.IndexOf(tab);
+            Tabs.Remove(tab);
+
+            // Selectam tabul din stanga celui inchis, sau primul disponibil
+            if (Tabs.Count == 0)
+                NewFile();
+            else
+                SelectedTab = Tabs[Math.Max(0, index - 1)];
+        }
+
+        public void CloseAllTabs()
+        {
+            // Iteram pe o copie a listei ca sa putem modifica originalul
+            foreach (var tab in Tabs.ToList())
+            {
+                if (tab.IsModified)
+                {
+                    // Selectam tabul ca utilizatorul sa vada despre ce fisier e vorba
+                    SelectedTab = tab;
+
+                    var result = MessageBox.Show(
+                        $"'{tab.Header.Replace(" ●", "")}' has unsaved changes. Save?",
+                        "Unsaved changes",
+                        MessageBoxButton.YesNoCancel);
+
+                    if (result == MessageBoxResult.Cancel) return; // oprim tot
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        bool saved = SaveFile(tab);
+                        if (!saved) return;
+                    }
+                }
+                Tabs.Remove(tab);
+            }
+            NewFile();
         }
     }
 }
