@@ -12,6 +12,8 @@ namespace Notepad__.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
+        #region Properties & Fields
+
         public ObservableCollection<TabFile> Tabs { get; } = new();
 
         private TabFile _selectedTab;
@@ -21,8 +23,7 @@ namespace Notepad__.ViewModels
             set { _selectedTab = value; OnPropertyChanged(); }
         }
 
-
-        public FileSystemViewModel FileSystemVM { get; }
+        public FileSystemViewModel FileSystemVM { get; private set; }
 
         private bool _folderExplorerVisible = true;
         public bool FolderExplorerVisible
@@ -45,31 +46,32 @@ namespace Notepad__.ViewModels
 
         public string SearchModeHeader => SearchAllTabs ? "Mode: All Tabs" : "Mode: Selected Tab";
 
-        public ICommand NewFileCommand { get; }
-        public ICommand OpenFileCommand { get; }
-        public ICommand SaveFileCommand { get; }
-        public ICommand SaveFileAsCommand { get; }
-        public ICommand CloseTabCommand { get; }      
-        public ICommand CloseAllTabsCommand { get; }  
-        public ICommand ShowStandardViewCommand { get; }
-        public ICommand ShowFolderExplorerCommand { get; }
-        public ICommand ExitCommand { get; }
-        public ICommand FindCommand { get; }
-        public ICommand ReplaceCommand { get; }
-        public ICommand ReplaceAllCommand { get; }
-        public ICommand ToggleSearchModeCommand { get; }
+        #endregion
 
-        public ICommand AboutCommand { get; }
+        #region Commands
 
+        // { get; private set; } in loc de { get; }
+        // ca sa poata fi setate din InitializeCommands(), nu doar din constructor
+        public ICommand NewFileCommand { get; private set; }
+        public ICommand OpenFileCommand { get; private set; }
+        public ICommand SaveFileCommand { get; private set; }
+        public ICommand SaveFileAsCommand { get; private set; }
+        public ICommand CloseTabCommand { get; private set; }
+        public ICommand CloseAllTabsCommand { get; private set; }
+        public ICommand ShowStandardViewCommand { get; private set; }
+        public ICommand ShowFolderExplorerCommand { get; private set; }
+        public ICommand ExitCommand { get; private set; }
+        public ICommand FindCommand { get; private set; }
+        public ICommand ReplaceCommand { get; private set; }
+        public ICommand ReplaceAllCommand { get; private set; }
+        public ICommand ToggleSearchModeCommand { get; private set; }
+        public ICommand AboutCommand { get; private set; }
 
-
-        public MainViewModel()
+        private void InitializeCommands()
         {
             NewFileCommand = new RelayCommand(_ => NewFile());
-
             OpenFileCommand = new RelayCommand(_ => OpenFile());
 
-            // Save e activ doar daca exista un tab selectat
             SaveFileCommand = new RelayCommand(
                 _ => SaveFile(),
                 _ => SelectedTab != null);
@@ -91,19 +93,32 @@ namespace Notepad__.ViewModels
             FindCommand = new RelayCommand(_ => OpenFindReplace(false, false));
             ReplaceCommand = new RelayCommand(_ => OpenFindReplace(true, false));
             ReplaceAllCommand = new RelayCommand(_ => OpenFindReplace(true, true));
+
             ToggleSearchModeCommand = new RelayCommand(_ => SearchAllTabs = !SearchAllTabs);
 
             AboutCommand = new RelayCommand(_ => new Views.AboutWindow().ShowDialog());
 
-            NewFile();
+            ShowStandardViewCommand = new RelayCommand(_ => FolderExplorerVisible = false);
+            ShowFolderExplorerCommand = new RelayCommand(_ => FolderExplorerVisible = true);
+        }
+
+        #endregion
+
+        #region Constructor
+
+        public MainViewModel()
+        {
+            InitializeCommands();
 
             FileSystemVM = new FileSystemViewModel();
             FileSystemVM.OpenFileRequested += OpenFileFromPath;
 
-            ShowStandardViewCommand = new RelayCommand(_ => FolderExplorerVisible = false);
-            ShowFolderExplorerCommand = new RelayCommand(_ => FolderExplorerVisible = true);
-
+            NewFile();
         }
+
+        #endregion
+
+        #region File Operations
 
         public void NewFile()
         {
@@ -140,7 +155,6 @@ namespace Notepad__.ViewModels
             {
                 // Verificare simpla: citim primii 8000 bytes si cautam caractere nule
                 // Fisierele binare (imagini, exe etc.) contin de obicei caractere nule
-                // Fisierele text nu ar trebui sa contina
                 byte[] buffer = File.ReadAllBytes(path);
                 for (int i = 0; i < Math.Min(buffer.Length, 8000); i++)
                 {
@@ -196,7 +210,6 @@ namespace Notepad__.ViewModels
             {
                 Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
                 DefaultExt = ".txt",
-                // Propune numele tabului ca nume de fisier
                 FileName = tab.IsNew
                     ? $"File {tab.NewFileIndex}"
                     : Path.GetFileName(tab.FilePath)
@@ -204,15 +217,16 @@ namespace Notepad__.ViewModels
 
             if (dlg.ShowDialog() == true)
             {
-                tab.FilePath = dlg.FileName; // seteaza calea
+                tab.FilePath = dlg.FileName;
                 return SaveFile(tab);
             }
 
-            return false; // utilizatorul a apasat Cancel
+            return false;
         }
 
-        public void CloseTab(TabFile tab)
+        public void CloseTab(TabFile tab = null)
         {
+            tab ??= SelectedTab;  
             if (tab == null) return;
 
             if (tab.IsModified)
@@ -225,8 +239,6 @@ namespace Notepad__.ViewModels
                 if (result == MessageBoxResult.Cancel) return;
                 if (result == MessageBoxResult.Yes)
                 {
-                    // Daca salvarea esueaza (ex: utilizatorul a apasat Cancel la SaveAs)
-                    // nu inchidem tabul
                     bool saved = SaveFile(tab);
                     if (!saved) return;
                 }
@@ -249,7 +261,6 @@ namespace Notepad__.ViewModels
             {
                 if (tab.IsModified)
                 {
-                    // Selectam tabul ca utilizatorul sa vada despre ce fisier e vorba
                     SelectedTab = tab;
 
                     var result = MessageBox.Show(
@@ -257,7 +268,7 @@ namespace Notepad__.ViewModels
                         "Unsaved changes",
                         MessageBoxButton.YesNoCancel);
 
-                    if (result == MessageBoxResult.Cancel) return; // oprim tot
+                    if (result == MessageBoxResult.Cancel) return;
                     if (result == MessageBoxResult.Yes)
                     {
                         bool saved = SaveFile(tab);
@@ -269,6 +280,9 @@ namespace Notepad__.ViewModels
             NewFile();
         }
 
+        #endregion
+
+        #region Search & Replace
 
         private Views.FindReplaceWindow _findReplaceWindow;
 
@@ -285,16 +299,14 @@ namespace Notepad__.ViewModels
             _findReplaceWindow.Show();
         }
 
-        // Returneaza indexul primei aparitii in tab-ul dat
-        // sau -1 daca nu gaseste
+        // Returneaza indexul primei aparitii in tab-ul dat, sau -1 daca nu gaseste
         public int FindInTab(string searchText, TabFile tab)
         {
             if (string.IsNullOrEmpty(searchText) || tab == null) return -1;
             return tab.Content?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) ?? -1;
         }
 
-        // Inlocuieste prima aparitie in tab-ul dat
-        // Returneaza true daca a inlocuit ceva
+        // Inlocuieste prima aparitie in tab-ul dat; returneaza true daca a inlocuit ceva
         public bool ReplaceInTab(string find, string replace, TabFile tab)
         {
             if (tab == null || string.IsNullOrEmpty(find)) return false;
@@ -306,8 +318,7 @@ namespace Notepad__.ViewModels
             return true;
         }
 
-        // Inlocuieste toate aparitiile intr-un tab
-        // Returneaza numarul de inlocuiri
+        // Inlocuieste toate aparitiile intr-un tab; returneaza numarul de inlocuiri
         public int ReplaceAllInTab(string find, string replace, TabFile tab)
         {
             if (tab == null || string.IsNullOrEmpty(find)) return 0;
@@ -337,5 +348,7 @@ namespace Notepad__.ViewModels
                 total += ReplaceAllInTab(find, replace, tab);
             return total;
         }
+
+        #endregion
     }
 }
