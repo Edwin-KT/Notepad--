@@ -50,8 +50,6 @@ namespace Notepad__.ViewModels
 
         #region Commands
 
-        // { get; private set; } in loc de { get; }
-        // ca sa poata fi setate din InitializeCommands(), nu doar din constructor
         public ICommand NewFileCommand { get; private set; }
         public ICommand OpenFileCommand { get; private set; }
         public ICommand SaveFileCommand { get; private set; }
@@ -141,7 +139,6 @@ namespace Notepad__.ViewModels
 
         public void OpenFileFromPath(string path)
         {
-            // Daca fisierul e deja deschis, doar il selectam
             foreach (var t in Tabs)
             {
                 if (t.FilePath == path)
@@ -153,8 +150,6 @@ namespace Notepad__.ViewModels
 
             try
             {
-                // Verificare simpla: citim primii 8000 bytes si cautam caractere nule
-                // Fisierele binare (imagini, exe etc.) contin de obicei caractere nule
                 byte[] buffer = File.ReadAllBytes(path);
                 for (int i = 0; i < Math.Min(buffer.Length, 8000); i++)
                 {
@@ -178,20 +173,17 @@ namespace Notepad__.ViewModels
             }
         }
 
-        // Returneaza true/false ca sa stim daca salvarea a reusit
-        // (util mai tarziu la Close)
         public bool SaveFile(TabFile tab = null)
         {
             tab ??= SelectedTab;
             if (tab == null) return false;
 
-            // Daca e fisier nou, trebuie sa alegem calea
             if (tab.IsNew) return SaveFileAs(tab);
 
             try
             {
                 File.WriteAllText(tab.FilePath, tab.Content);
-                tab.IsModified = false; // dispare ●
+                tab.IsModified = false;
                 return true;
             }
             catch (Exception ex)
@@ -247,7 +239,6 @@ namespace Notepad__.ViewModels
             int index = Tabs.IndexOf(tab);
             Tabs.Remove(tab);
 
-            // Selectam tabul din stanga celui inchis, sau primul disponibil
             if (Tabs.Count == 0)
                 NewFile();
             else
@@ -256,7 +247,6 @@ namespace Notepad__.ViewModels
 
         public void CloseAllTabs()
         {
-            // Iteram pe o copie a listei ca sa putem modifica originalul
             foreach (var tab in Tabs.ToList())
             {
                 if (tab.IsModified)

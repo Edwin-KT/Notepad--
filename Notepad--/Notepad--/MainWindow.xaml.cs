@@ -15,13 +15,10 @@ namespace Notepad__
 
         private void TreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Luam ViewModel-ul din DataContext
             var vm = DataContext as MainViewModel;
 
-            // SelectedItem din TreeView este de tip FileSystemItem
             var selectedItem = (sender as TreeView)?.SelectedItem as FileSystemItem;
 
-            // Trimitem la ViewModel — toata logica e acolo
             vm?.FileSystemVM.OnItemDoubleClicked(selectedItem);
         }
 

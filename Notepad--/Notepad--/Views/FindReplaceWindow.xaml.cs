@@ -16,19 +16,15 @@ namespace Notepad__.Views
             SetMode(replaceMode, replaceAll);
         }
 
-        // Permite schimbarea modului daca fereastra e deja deschisa
         public void SetMode(bool replaceMode, bool replaceAll)
         {
             _replaceMode = replaceMode;
             _replaceAll = replaceAll;
 
-            // Ascundem panoul Replace daca suntem in modul Find
             ReplacePanel.Visibility = replaceMode ? Visibility.Visible : Visibility.Collapsed;
 
-            // Ajustam inaltimea ferestrei
             Height = replaceMode ? 220 : 175;
-
-            // Activam/dezactivam butoanele in functie de mod
+            
             ReplaceBtn.Visibility = replaceMode && !replaceAll ? Visibility.Visible : Visibility.Collapsed;
             ReplaceAllBtn.Visibility = replaceMode ? Visibility.Visible : Visibility.Collapsed;
 
@@ -47,7 +43,6 @@ namespace Notepad__.Views
 
             if (_vm.SearchAllTabs)
             {
-                // Cautam in toate taburile
                 int found = 0;
                 foreach (var tab in _vm.Tabs)
                     if (_vm.FindInTab(searchText, tab) >= 0)
@@ -59,7 +54,6 @@ namespace Notepad__.Views
             }
             else
             {
-                // Cautam doar in tabul selectat
                 int index = _vm.FindInTab(searchText, _vm.SelectedTab);
                 ResultText.Text = index >= 0
                     ? $"Found at position {index}."

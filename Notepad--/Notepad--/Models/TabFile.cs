@@ -5,16 +5,14 @@ namespace Notepad__.Models
 {
     public class TabFile : INotifyPropertyChanged
     {
-        // Contor static — File 1, File 2, File 3...
         private static int _counter = 1;
 
         private string _filePath;
         private string _content = string.Empty;
         private bool _isModified;
 
-        public int NewFileIndex { get; } // retinut la creare
+        public int NewFileIndex { get; } 
 
-        // Calea pe disc (null daca e fisier nou)
         public string FilePath
         {
             get => _filePath;
@@ -22,11 +20,10 @@ namespace Notepad__.Models
             {
                 _filePath = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(Header)); // header-ul se schimba
+                OnPropertyChanged(nameof(Header)); 
             }
         }
 
-        // Continutul din editor
         public string Content
         {
             get => _content;
@@ -41,7 +38,6 @@ namespace Notepad__.Models
             }
         }
 
-        // A fost modificat si nesalvat?
         public bool IsModified
         {
             get => _isModified;
@@ -49,13 +45,12 @@ namespace Notepad__.Models
             {
                 _isModified = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(Header)); // ● apare/dispare
+                OnPropertyChanged(nameof(Header));
             }
         }
 
         public bool IsNew => string.IsNullOrEmpty(_filePath);
 
-        // Ce apare pe tab: "File 1 ●" sau "document.txt ●"
         public string Header
         {
             get
@@ -67,13 +62,11 @@ namespace Notepad__.Models
             }
         }
 
-        // Constructor pentru fisier NOU (fara cale)
         public TabFile()
         {
             NewFileIndex = _counter++;
         }
 
-        // Constructor pentru fisier DESCHIS de pe disc
         public TabFile(string filePath, string content)
         {
             _filePath = filePath;
