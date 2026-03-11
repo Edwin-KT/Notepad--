@@ -1,4 +1,5 @@
-﻿using Notepad__.ViewModels;
+﻿using Notepad__.Models;
+using Notepad__.ViewModels;
 using System.Windows;
 
 namespace Notepad__.Views
@@ -23,8 +24,8 @@ namespace Notepad__.Views
 
             ReplacePanel.Visibility = replaceMode ? Visibility.Visible : Visibility.Collapsed;
 
-            Height = replaceMode ? 220 : 175;
-            
+            Height = replaceMode ? 250 : 200;
+
             ReplaceBtn.Visibility = replaceMode && !replaceAll ? Visibility.Visible : Visibility.Collapsed;
             ReplaceAllBtn.Visibility = replaceMode ? Visibility.Visible : Visibility.Collapsed;
 
@@ -35,29 +36,42 @@ namespace Notepad__.Views
         private void FindBtn_Click(object sender, RoutedEventArgs e)
         {
             string searchText = FindBox.Text;
-            if (string.IsNullOrEmpty(searchText))
-            {
-                ResultText.Text = "Please enter a search term.";
-                return;
-            }
+            bool wholeWord = WholeWordCheck.IsChecked == true;
+            if (string.IsNullOrEmpty(searchText)) { ResultText.Text = "Please enter a search term."; return; }
 
             if (_vm.SearchAllTabs)
             {
                 int found = 0;
-                foreach (var tab in _vm.Tabs)
-                    if (_vm.FindInTab(searchText, tab) >= 0)
-                        found++;
+                TabFile firstFound = null;
+                int firstIndex = -1;
 
-                ResultText.Text = found > 0
-                    ? $"Found in {found} tab(s)."
-                    : "Not found in any tab.";
+                foreach (var tab in _vm.Tabs)
+                {
+                    int index = _vm.FindInTab(searchText, tab, wholeWord);
+                    if (index >= 0)
+                    {
+                        found++;
+                        if (firstFound == null)
+                        {
+                            firstFound = tab;
+                            firstIndex = index;
+                        }
+                    }
+                }
+
+                if (firstFound != null)
+                {
+                    _vm.SelectedTab = firstFound;
+                    _vm.SetFindResult(firstIndex, searchText.Length);
+                }
+
+                ResultText.Text = found > 0 ? $"Found in {found} tab(s)." : "Not found in any tab.";
             }
             else
             {
-                int index = _vm.FindInTab(searchText, _vm.SelectedTab);
-                ResultText.Text = index >= 0
-                    ? $"Found at position {index}."
-                    : "Not found in current tab.";
+                int index = _vm.FindInTab(searchText, _vm.SelectedTab, wholeWord);
+                if (index >= 0) _vm.SetFindResult(index, searchText.Length);
+                ResultText.Text = index >= 0 ? $"Found at position {index}." : "Not found in current tab.";
             }
         }
 
@@ -65,25 +79,19 @@ namespace Notepad__.Views
         {
             string find = FindBox.Text;
             string replace = ReplaceBox.Text;
-
-            if (string.IsNullOrEmpty(find))
-            {
-                ResultText.Text = "Please enter a search term.";
-                return;
-            }
+            bool wholeWord = WholeWordCheck.IsChecked == true;
+            if (string.IsNullOrEmpty(find)) { ResultText.Text = "Please enter a search term."; return; }
 
             if (_vm.SearchAllTabs)
             {
                 int count = 0;
                 foreach (var tab in _vm.Tabs)
-                    if (_vm.ReplaceInTab(find, replace, tab)) count++;
-                ResultText.Text = count > 0
-                    ? $"Replaced first occurrence in {count} tab(s)."
-                    : "Not found in any tab.";
+                    if (_vm.ReplaceInTab(find, replace, tab, wholeWord)) count++;
+                ResultText.Text = count > 0 ? $"Replaced first occurrence in {count} tab(s)." : "Not found in any tab.";
             }
             else
             {
-                bool replaced = _vm.ReplaceInTab(find, replace, _vm.SelectedTab);
+                bool replaced = _vm.ReplaceInTab(find, replace, _vm.SelectedTab, wholeWord);
                 ResultText.Text = replaced ? "Replaced first occurrence." : "Not found.";
             }
         }
@@ -92,27 +100,19 @@ namespace Notepad__.Views
         {
             string find = FindBox.Text;
             string replace = ReplaceBox.Text;
-
-            if (string.IsNullOrEmpty(find))
-            {
-                ResultText.Text = "Please enter a search term.";
-                return;
-            }
+            bool wholeWord = WholeWordCheck.IsChecked == true;
+            if (string.IsNullOrEmpty(find)) { ResultText.Text = "Please enter a search term."; return; }
 
             int total;
             if (_vm.SearchAllTabs)
             {
-                total = _vm.ReplaceAllInAllTabs(find, replace);
-                ResultText.Text = total > 0
-                    ? $"Replaced {total} occurrence(s) across all tabs."
-                    : "Not found in any tab.";
+                total = _vm.ReplaceAllInAllTabs(find, replace, wholeWord);
+                ResultText.Text = total > 0 ? $"Replaced {total} occurrence(s) across all tabs." : "Not found in any tab.";
             }
             else
             {
-                total = _vm.ReplaceAllInTab(find, replace, _vm.SelectedTab);
-                ResultText.Text = total > 0
-                    ? $"Replaced {total} occurrence(s)."
-                    : "Not found.";
+                total = _vm.ReplaceAllInTab(find, replace, _vm.SelectedTab, wholeWord);
+                ResultText.Text = total > 0 ? $"Replaced {total} occurrence(s)." : "Not found.";
             }
         }
 

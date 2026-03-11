@@ -1,10 +1,11 @@
-﻿using Notepad__.Helpers;
+﻿using Microsoft.Win32;
+using Notepad__.Helpers;
 using Notepad__.Models;
-using Microsoft.Win32;
-using System.Collections.ObjectModel;
 using System;
-using System.Linq;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
@@ -45,6 +46,20 @@ namespace Notepad__.ViewModels
         }
 
         public string SearchModeHeader => SearchAllTabs ? "Mode: All Tabs" : "Mode: Selected Tab";
+
+        private int _findResultIndex = -1;
+        public int FindResultIndex
+        {
+            get => _findResultIndex;
+            set { _findResultIndex = value; OnPropertyChanged(); }
+        }
+
+        private int _findResultLength = 0;
+        public int FindResultLength
+        {
+            get => _findResultLength;
+            set { _findResultLength = value; OnPropertyChanged(); }
+        }
 
         #endregion
 
@@ -218,7 +233,7 @@ namespace Notepad__.ViewModels
 
         public void CloseTab(TabFile tab = null)
         {
-            tab ??= SelectedTab;  
+            tab ??= SelectedTab;
             if (tab == null) return;
 
             if (tab.IsModified)
@@ -278,7 +293,6 @@ namespace Notepad__.ViewModels
 
         private void OpenFindReplace(bool replaceMode, bool replaceAll)
         {
-            // Daca fereastra e deja deschisa, o aducem in prim plan
             if (_findReplaceWindow != null && _findReplaceWindow.IsVisible)
             {
                 _findReplaceWindow.SetMode(replaceMode, replaceAll);
@@ -289,54 +303,55 @@ namespace Notepad__.ViewModels
             _findReplaceWindow.Show();
         }
 
-        // Returneaza indexul primei aparitii in tab-ul dat, sau -1 daca nu gaseste
-        public int FindInTab(string searchText, TabFile tab)
+        public void SetFindResult(int index, int length)
         {
-            if (string.IsNullOrEmpty(searchText) || tab == null) return -1;
-            return tab.Content?.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) ?? -1;
+            FindResultIndex = index;
+            FindResultLength = length;
         }
 
-        // Inlocuieste prima aparitie in tab-ul dat; returneaza true daca a inlocuit ceva
-        public bool ReplaceInTab(string find, string replace, TabFile tab)
+        public int FindInTab(string searchText, TabFile tab, bool wholeWord = false)
+        {
+            if (string.IsNullOrEmpty(searchText) || tab == null) return -1;
+            return FindIndex(tab.Content, searchText, 0, wholeWord);
+        }
+
+        public bool ReplaceInTab(string find, string replace, TabFile tab, bool wholeWord = false)
         {
             if (tab == null || string.IsNullOrEmpty(find)) return false;
-
-            int index = tab.Content?.IndexOf(find, StringComparison.OrdinalIgnoreCase) ?? -1;
+            int index = FindIndex(tab.Content, find, 0, wholeWord);
             if (index < 0) return false;
-
             tab.Content = tab.Content.Remove(index, find.Length).Insert(index, replace);
             return true;
         }
 
-        // Inlocuieste toate aparitiile intr-un tab; returneaza numarul de inlocuiri
-        public int ReplaceAllInTab(string find, string replace, TabFile tab)
+        public int ReplaceAllInTab(string find, string replace, TabFile tab, bool wholeWord = false)
         {
             if (tab == null || string.IsNullOrEmpty(find)) return 0;
-
-            int count = 0;
-            string content = tab.Content ?? "";
-            string lower = content.ToLower();
-            string findLower = find.ToLower();
-            int index;
-
-            while ((index = lower.IndexOf(findLower)) >= 0)
-            {
-                content = content.Remove(index, find.Length).Insert(index, replace);
-                lower = content.ToLower();
-                count++;
-            }
-
-            if (count > 0) tab.Content = content;
+            string pattern = wholeWord ? $@"\b{Regex.Escape(find)}\b" : Regex.Escape(find);
+            int count = Regex.Matches(tab.Content ?? "", pattern, RegexOptions.IgnoreCase).Count;
+            if (count > 0)
+                tab.Content = Regex.Replace(tab.Content, pattern, replace, RegexOptions.IgnoreCase);
             return count;
         }
 
-        // Inlocuieste toate aparitiile in toate taburile
-        public int ReplaceAllInAllTabs(string find, string replace)
+        public int ReplaceAllInAllTabs(string find, string replace, bool wholeWord = false)
         {
             int total = 0;
             foreach (var tab in Tabs)
-                total += ReplaceAllInTab(find, replace, tab);
+                total += ReplaceAllInTab(find, replace, tab, wholeWord);
             return total;
+        }
+
+        private int FindIndex(string content, string search, int startIndex, bool wholeWord)
+        {
+            if (string.IsNullOrEmpty(content)) return -1;
+            if (wholeWord)
+            {
+                string pattern = $@"\b{Regex.Escape(search)}\b";
+                var match = Regex.Match(content.Substring(startIndex), pattern, RegexOptions.IgnoreCase);
+                return match.Success ? match.Index + startIndex : -1;
+            }
+            return content.IndexOf(search, startIndex, StringComparison.OrdinalIgnoreCase);
         }
 
         #endregion

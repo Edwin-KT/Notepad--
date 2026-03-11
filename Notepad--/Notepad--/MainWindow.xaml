@@ -25,7 +25,6 @@
 
 	<DockPanel>
 
-		<!-- MENIU -->
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="File">
 				<MenuItem Header="New File"         Command="{Binding NewFileCommand}"/>
@@ -48,7 +47,6 @@
 				<MenuItem Header="Replace All..."
               Command="{Binding ReplaceAllCommand}"/>
 				<Separator/>
-				<!-- Acest item arata modul curent si il schimba la click -->
 				<MenuItem Header="{Binding SearchModeHeader}"
               Command="{Binding ToggleSearchModeCommand}"/>
 			</MenuItem>
@@ -65,7 +63,6 @@
 
 		<ToolBar DockPanel.Dock="Top">
 
-			<!-- File operations -->
 			<Button Command="{Binding NewFileCommand}"
             ToolTip="New File (Ctrl+N)">
 				<TextBlock Text="🗋" FontSize="14"/>
@@ -83,7 +80,6 @@
 
 			<Separator/>
 
-			<!-- Search operations -->
 			<Button Command="{Binding FindCommand}"
             ToolTip="Find (Ctrl+F)">
 				<TextBlock Text="🔍" FontSize="14"/>
@@ -96,7 +92,6 @@
 
 			<Separator/>
 
-			<!-- View operations -->
 			<Button Command="{Binding ShowFolderExplorerCommand}"
             ToolTip="Show Folder Explorer">
 				<TextBlock Text="📁" FontSize="14"/>
@@ -109,17 +104,14 @@
 
 		</ToolBar>
 
-		<!-- ZONA PRINCIPALA: Explorer stanga + Taburi dreapta -->
 		<Grid>
 			<Grid.ColumnDefinitions>
-				<!-- Coloana pentru explorer; se ascunde cand FolderExplorerVisible = false -->
 				<ColumnDefinition Width="{Binding FolderExplorerVisible, 
                                   Converter={StaticResource BoolToWidthConverter}}"/>
 				<ColumnDefinition Width="5"/>
 				<ColumnDefinition Width="*"/>
 			</Grid.ColumnDefinitions>
 
-			<!-- FOLDER EXPLORER -->
 			<TreeView Grid.Column="0"
 			ItemsSource="{Binding FileSystemVM.Drives}"
 			MouseDoubleClick="TreeView_MouseDoubleClick"
@@ -138,11 +130,8 @@
                                   RelativeSource={RelativeSource AncestorType=TreeView}}"/>
 						<Setter Property="ContextMenu">
 							<Setter.Value>
-								<!-- Meniul apare doar pe directoare -->
 								<ContextMenu>
-									<!-- Trucul: legam DataContext-ul meniului la FileSystemViewModel
-                             prin PlacementTarget (elementul pe care s-a dat click dreapta),
-                             care are DataContext = MainViewModel, din care luam FileSystemVM -->
+
 									<ContextMenu.DataContext>
 										<Binding Path="PlacementTarget.Tag" RelativeSource="{RelativeSource Self}"/>
 									</ContextMenu.DataContext>
@@ -162,11 +151,10 @@
 				</TreeView.ItemContainerStyle>
 			</TreeView>
 
-			<!-- SEPARATOR VIZUAL -->
 			<GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
 
-			<!-- TABURI -->
-			<TabControl Grid.Column="2"
+			<TabControl x:Name="TabControlMain"
+            Grid.Column="2"
             ItemsSource="{Binding Tabs}"
             SelectedItem="{Binding SelectedTab}">
 
@@ -179,7 +167,6 @@
 								<TextBlock.Style>
 									<Style TargetType="TextBlock">
 										<Style.Triggers>
-											<!-- Daca IsModified = true, textul devine rosu -->
 											<DataTrigger Binding="{Binding IsModified}" Value="True">
 												<Setter Property="Foreground" Value="Red"/>
 											</DataTrigger>

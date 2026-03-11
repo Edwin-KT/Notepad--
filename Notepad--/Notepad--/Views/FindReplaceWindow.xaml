@@ -7,7 +7,6 @@
         WindowStartupLocation="CenterOwner">
 	<StackPanel Margin="15">
 
-		<!-- Find -->
 		<Grid Margin="0,0,0,8">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="80"/>
@@ -16,8 +15,8 @@
 			<TextBlock Text="Find:" VerticalAlignment="Center"/>
 			<TextBox x:Name="FindBox" Grid.Column="1"/>
 		</Grid>
-
-		<!-- Replace (se ascunde in modul Find) -->
+		
+		
 		<Grid Margin="0,0,0,12" x:Name="ReplacePanel">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="80"/>
@@ -26,8 +25,11 @@
 			<TextBlock Text="Replace:" VerticalAlignment="Center"/>
 			<TextBox x:Name="ReplaceBox" Grid.Column="1"/>
 		</Grid>
+		
+		<CheckBox x:Name="WholeWordCheck" 
+          Content="Whole word only" 
+          Margin="0,0,0,8"/>
 
-		<!-- Butoane -->
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
 			<Button x:Name="FindBtn"
                     Content="Find"
@@ -46,7 +48,6 @@
                     Click="CloseBtn_Click"/>
 		</StackPanel>
 
-		<!-- Mesaj rezultat (ex: "3 replacements made") -->
 		<TextBlock x:Name="ResultText"
                    Margin="0,12,0,0"
                    Foreground="Gray"
