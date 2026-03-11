@@ -13,6 +13,16 @@ namespace Notepad__
         {
             InitializeComponent();
 
+            Closing += (s, e) =>
+            {
+                var vm = DataContext as MainViewModel;
+                if (vm == null) return;
+
+                bool canClose = vm.TryExit(shutdown: false);
+                if (!canClose)
+                    e.Cancel = true;
+            };
+
             Loaded += (s, e) =>
             {
                 var vm = DataContext as MainViewModel;

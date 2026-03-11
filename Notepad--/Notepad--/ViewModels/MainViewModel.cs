@@ -61,6 +61,8 @@ namespace Notepad__.ViewModels
             set { _findResultLength = value; OnPropertyChanged(); }
         }
 
+        private bool _exitConfirmed = false;
+
         #endregion
 
         #region Commands
@@ -101,7 +103,7 @@ namespace Notepad__.ViewModels
                 _ => CloseAllTabs(),
                 _ => Tabs.Count > 0);
 
-            ExitCommand = new RelayCommand(_ => Application.Current.Shutdown());
+            ExitCommand = new RelayCommand(_ => TryExit());
 
             FindCommand = new RelayCommand(_ => OpenFindReplace(false, false));
             ReplaceCommand = new RelayCommand(_ => OpenFindReplace(true, false));
@@ -283,6 +285,38 @@ namespace Notepad__.ViewModels
                 Tabs.Remove(tab);
             }
             NewFile();
+        }
+
+        public bool TryExit(bool shutdown = true)
+        {
+            if (_exitConfirmed) return true;
+
+            foreach (var tab in Tabs.ToList())
+            {
+                if (tab.IsModified)
+                {
+                    SelectedTab = tab;
+
+                    var result = MessageBox.Show(
+                        $"'{tab.Header.Replace(" ●", "")}' has unsaved changes. Save?",
+                        "Unsaved changes",
+                        MessageBoxButton.YesNoCancel);
+
+                    if (result == MessageBoxResult.Cancel) return false;
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        bool saved = SaveFile(tab);
+                        if (!saved) return false;
+                    }
+                }
+            }
+
+            _exitConfirmed = true;
+
+            if (shutdown)
+                Application.Current.Shutdown();
+
+            return true;
         }
 
         #endregion
